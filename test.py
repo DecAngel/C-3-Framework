@@ -18,7 +18,7 @@ from PIL import Image, ImageOps
 torch.cuda.set_device(0)
 torch.backends.cudnn.benchmark = True
 
-exp_name = '../SHHB_results'
+exp_name = './SHHB_results'
 if not os.path.exists(exp_name):
     os.mkdir(exp_name)
 
@@ -39,9 +39,9 @@ restore = standard_transforms.Compose([
     ])
 pil_to_tensor = standard_transforms.ToTensor()
 
-dataRoot = '../ProcessedData/shanghaitech_part_B/test'
+dataRoot = './shanghaitech_part_B/test'
 
-model_path = 'xxx.pth'
+model_path = 'all_ep_191_mae_8.7_mse_14.3.pth'
 
 def main():
     
@@ -53,7 +53,7 @@ def main():
 def test(file_list, model_path):
 
     net = CrowdCounter(cfg.GPU_ID,cfg.NET)
-    net.load_state_dict(torch.load(model_path))
+    net.load_state_dict(torch.load(model_path), strict=False)
     net.cuda()
     net.eval()
 
@@ -64,7 +64,7 @@ def test(file_list, model_path):
     preds = []
 
     for filename in file_list:
-    	print( filename )
+        print( filename )
         imgname = dataRoot + '/img/' + filename
         filename_no_ext = filename.split('.')[0]
 
