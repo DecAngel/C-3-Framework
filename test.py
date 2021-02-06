@@ -15,6 +15,8 @@ from misc.utils import *
 import scipy.io as sio
 from PIL import Image, ImageOps
 
+from datasets.SHHB.setting import cfg_data
+
 torch.cuda.set_device(0)
 torch.backends.cudnn.benchmark = True
 
@@ -37,6 +39,9 @@ restore = standard_transforms.Compose([
         own_transforms.DeNormalize(*mean_std),
         standard_transforms.ToPILImage()
     ])
+gt_transform = standard_transforms.Compose([
+    own_transforms.LabelNormalize(cfg_data.LOG_PARA)
+])
 pil_to_tensor = standard_transforms.ToTensor()
 
 dataRoot = './shanghaitech_part_B/test'
@@ -70,6 +75,7 @@ def test(file_list, model_path):
 
         den = pd.read_csv(denname, sep=',',header=None).values
         den = den.astype(np.float32, copy=False)
+        den = gt_transform(den)
 
         img = Image.open(imgname)
 
@@ -78,22 +84,23 @@ def test(file_list, model_path):
 
 
         img = img_transform(img)
+        img = torch.unsqueeze(img, 0)
+        img = torch.cat([img]*6, 0)
 
-        gt = np.sum(den)
+        gt = float(den.sum())/cfg_data.LOG_PARA
         with torch.no_grad():
-            img = Variable(img[None,:,:,:]).cuda()
+            img = Variable(img).cuda()
             pred_map = net.test_forward(img)
+        pred = float(pred_map.sum().data/cfg_data.LOG_PARA)
+        #sio.savemat(exp_name+'/pred/'+filename_no_ext+'.mat',{'data':pred_map.squeeze().cpu().numpy()/100.})
+        #sio.savemat(exp_name+'/gt/'+filename_no_ext+'.mat',{'data':den})
 
-        sio.savemat(exp_name+'/pred/'+filename_no_ext+'.mat',{'data':pred_map.squeeze().cpu().numpy()/100.})
-        sio.savemat(exp_name+'/gt/'+filename_no_ext+'.mat',{'data':den})
+        #pred_map = pred_map.cpu().data.numpy()[0,:,:,:]
 
-        pred_map = pred_map.cpu().data.numpy()[0,0,:,:]
+        #pred = np.sum(pred_map)/100.0
+        # pred_map = pred_map/np.max(pred_map+1e-20)
 
-
-        pred = np.sum(pred_map)/100.0
-        pred_map = pred_map/np.max(pred_map+1e-20)
-
-        den = den/np.max(den+1e-20)
+        # den = den/np.max(den+1e-20)
 
         '''
         den_frame = plt.gca()
