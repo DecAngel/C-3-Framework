@@ -28,7 +28,7 @@ __C.PRE_GCC_MODEL = 'path to model' # path to model
 __C.RESUME = False # contine training
 __C.RESUME_PATH = './exp/01-24_16-29_SHHB_Res101_SFCN_1e-05/latest_state.pth' # 
 
-__C.GPU_ID = [0, 1, 2, 3] # sigle gpu: [0], [1] ...; multi gpus: [0,1]
+__C.GPU_ID = [0] # sigle gpu: [0], [1] ...; multi gpus: [0,1]
 
 # learning rate settings
 __C.LR = 1e-5 # learning rate

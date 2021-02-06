@@ -41,7 +41,7 @@ pil_to_tensor = standard_transforms.ToTensor()
 
 dataRoot = './shanghaitech_part_B/test'
 
-model_path = 'all_ep_191_mae_8.7_mse_14.3.pth'
+model_path = 'all_ep_89_mae_8.5_mse_14.0.pth'
 
 def main():
     
@@ -52,11 +52,10 @@ def main():
 
 def test(file_list, model_path):
 
-    net = CrowdCounter(cfg.GPU_ID,cfg.NET)
+    net = CrowdCounter(cfg.GPU_ID, cfg.NET)
     net.load_state_dict(torch.load(model_path), strict=False)
     net.cuda()
     net.eval()
-
 
     f1 = plt.figure(1)
 
@@ -64,7 +63,6 @@ def test(file_list, model_path):
     preds = []
 
     for filename in file_list:
-        print( filename )
         imgname = dataRoot + '/img/' + filename
         filename_no_ext = filename.split('.')[0]
 
@@ -94,10 +92,10 @@ def test(file_list, model_path):
 
         pred = np.sum(pred_map)/100.0
         pred_map = pred_map/np.max(pred_map+1e-20)
-        
+
         den = den/np.max(den+1e-20)
 
-        
+        '''
         den_frame = plt.gca()
         plt.imshow(den, 'jet')
         den_frame.axes.get_yaxis().set_visible(False)
@@ -145,8 +143,17 @@ def test(file_list, model_path):
         plt.close()
 
         # sio.savemat(exp_name+'/'+filename_no_ext+'_diff.mat',{'data':diff})
-                     
+        '''
 
+        gts.append(gt)
+        preds.append(pred)
+        print('---'+filename+'---')
+        print('预测人数：'+str(pred))
+        print('实际人数：'+str(gt))
+
+    gts = np.array(gts)
+    preds = np.array(preds)
+    print(np.abs(gts-preds))
 
 
 if __name__ == '__main__':
